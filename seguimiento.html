@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Solicitud</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .seg-header { margin-bottom: 28px; }
+        .seg-header h1 { font-size: 1.5em; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .seg-header p { color: #6b7280; font-size: 0.88em; }
+        .seg-header strong { color: #4dd4e8; }
+        .status-card { display: flex; align-items: center; gap: 16px; padding: 18px 20px; background: #0d1424; border-radius: 12px; margin-bottom: 16px; border: 1px solid #1a2540; }
+        .status-icon { font-size: 2em; flex-shrink: 0; }
+        .status-text h2 { margin: 0; color: #e0e0e0; font-size: 1.1em; }
+        .status-text p { margin: 4px 0 0; color: #6b7280; font-size: 0.85em; }
+        .progress-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: #0d1424; border: 1px solid #1a2540; border-radius: 12px; margin-bottom: 16px; }
+        .progress-step { font-size: 0.78em; text-align: center; opacity: 0.3; transition: all 0.3s; color: #555; }
+        .progress-line { flex: 1; height: 2px; background: #1a2540; margin: 0 6px; transition: background 0.3s; }
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .info-item { background: #0d1424; padding: 14px 16px; border-radius: 10px; border: 1px solid #1a2540; }
+        .info-item .label { display: block; color: #6b7280; font-size: 0.78em; margin-bottom: 4px; }
+        .info-item .value { display: block; font-size: 1.05em; font-weight: 600; color: #e0e0e0; }
+        .seg-footer { text-align: center; margin-top: 24px; }
+        .seg-footer a { color: #4b5563; text-decoration: none; font-size: 0.85em; transition: color 0.2s; }
+        .seg-footer a:hover { color: #4dd4e8; }
+        @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } .progress-step { font-size: 0.7em; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                CréditoFlow
+            </a>
+            <div class="navbar-links">
+                <a href="/">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Solicitud
+                </a>
+                <a href="/seguimiento.html" class="active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Seguimiento
+                </a>
+                <div class="navbar-divider"></div>
+                <a href="/tablero.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    Tablero
+                </a>
+                <a href="/panel-empleado.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Empleado
+                </a>
+                <a href="/ia-recomendaciones.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+                    IA
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- BUSCADOR DE FOLIO -->
+        <div id="buscadorSection">
+            <div class="seg-header">
+                <h1>Seguimiento de solicitud</h1>
+                <p>Ingresa tu folio para consultar el estado de tu crédito</p>
+            </div>
+            <form id="formBuscar" style="display:flex;gap:10px;margin-bottom:28px">
+                <div style="flex:1;position:relative">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#4b5563;pointer-events:none">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </span>
+                    <input id="folioInput" type="text" placeholder="Ej: SOL-1791304654559-315"
+                        style="width:100%;background:#0d1424;border:1px solid #1a2540;border-radius:8px;padding:10px 12px 10px 36px;color:#fff;font-size:13px;outline:none;transition:border-color 0.15s"
+                        onfocus="this.style.borderColor='#4dd4e8'" onblur="this.style.borderColor='#1a2540'" />
+                </div>
+                <button type="submit"
+                    style="background:rgba(77,212,232,0.1);border:1px solid rgba(77,212,232,0.3);color:#4dd4e8;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s"
+                    onmouseover="this.style.background='rgba(77,212,232,0.18)'" onmouseout="this.style.background='rgba(77,212,232,0.1)'">
+                    Consultar
+                </button>
+            </form>
+            <div id="errorBuscar" style="display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:12px 16px;color:#f87171;font-size:13px;margin-bottom:16px"></div>
+        </div>
+
+        <!-- RESULTADO -->
+        <div id="statusContent" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+                <div>
+                    <div style="font-size:11px;font-weight:600;color:#4b5563;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Folio consultado</div>
+                    <div style="font-size:15px;font-weight:700;color:#4dd4e8" id="folioDisplay">-</div>
+                </div>
+                <button onclick="limpiarBusqueda()"
+                    style="background:transparent;border:1px solid #1a2540;color:#6b7280;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s"
+                    onmouseover="this.style.borderColor='#2a3a5f';this.style.color='#fff'" onmouseout="this.style.borderColor='#1a2540';this.style.color='#6b7280'">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Buscar otro folio
+                </button>
+            </div>
+            <div class="status-card">
+                <div class="status-icon" id="statusIcon" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:rgba(77,212,232,0.1);flex-shrink:0">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="status-text">
+                    <h2 id="statusText">Cargando...</h2>
+                    <p id="statusDetail">Esperando respuesta del sistema</p>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-step" id="step1">Recibido</div>
+                <div class="progress-line" id="line1"></div>
+                <div class="progress-step" id="step2">Procesando</div>
+                <div class="progress-line" id="line2"></div>
+                <div class="progress-step" id="step3">Validando</div>
+                <div class="progress-line" id="line3"></div>
+                <div class="progress-step" id="step4">Resultado</div>
+            </div>
+
+            <div id="detalles" style="display: none;">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Monto solicitado</span>
+                        <span class="value" id="detalleMonto">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Score crediticio</span>
+                        <span class="value" id="detalleScore">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Estado actual</span>
+                        <span class="value" id="detalleEstado">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mensajeFinal" style="margin-top: 16px;"></div>
+        </div>
+
+        <div class="seg-footer">
+            <a href="/">← Nueva solicitud</a>
+        </div>
+    </div>
+
+    <script>
+        let intervalo = null;
+
+        // Si viene con ?folio= en la URL, buscar directo
+        const params = new URLSearchParams(window.location.search);
+        const folioUrl = params.get('folio');
+        if (folioUrl) {
+            iniciarSeguimiento(folioUrl);
+        }
+
+        document.getElementById('formBuscar').addEventListener('submit', e => {
+            e.preventDefault();
+            const val = document.getElementById('folioInput').value.trim();
+            if (!val) return;
+            const errEl = document.getElementById('errorBuscar');
+            errEl.style.display = 'none';
+            iniciarSeguimiento(val);
+        });
+
+        function iniciarSeguimiento(folio) {
+            if (intervalo) clearInterval(intervalo);
+            document.getElementById('folioDisplay').textContent = folio;
+            document.getElementById('folioInput').value = folio;
+            document.getElementById('buscadorSection').style.display = 'block';
+            document.getElementById('statusContent').style.display = 'block';
+            // Resetear estado visual
+            document.getElementById('statusText').textContent = 'Consultando...';
+            document.getElementById('statusDetail').textContent = '';
+            document.getElementById('mensajeFinal').innerHTML = '';
+            document.getElementById('detalles').style.display = 'none';
+            consultarStatus(folio);
+            intervalo = setInterval(() => consultarStatus(folio), 3000);
+        }
+
+        function limpiarBusqueda() {
+            if (intervalo) clearInterval(intervalo);
+            document.getElementById('statusContent').style.display = 'none';
+            document.getElementById('folioInput').value = '';
+            document.getElementById('folioInput').focus();
+            history.replaceState(null, '', '/seguimiento.html');
+        }
+
+        async function consultarStatus(folio) {
+            try {
+                const response = await fetch(`/api/status/${encodeURIComponent(folio)}`);
+                if (response.status === 404) {
+                    if (intervalo) clearInterval(intervalo);
+                    document.getElementById('statusContent').style.display = 'none';
+                    const errEl = document.getElementById('errorBuscar');
+                    errEl.textContent = 'No se encontró ninguna solicitud con el folio "' + folio + '". Verifica que sea correcto.';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                const data = await response.json();
+                if (response.ok) actualizarUI(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function actualizarUI(data) {
+            const status = data.status;
+            const textos = {
+                'recibido': 'Documentos recibidos',
+                'procesando': 'Procesando documentos',
+                'ocr_completado': 'Documentos procesados',
+                'validando': 'Validando información',
+                'revision_manual': 'En revisión manual',
+                'aprobado': '¡Aprobado!',
+                'rechazado': 'Rechazado'
+            };
+
+            // Status card — ícono SVG según estado
+            const iconosSvg = {
+                'recibido':       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+                'procesando':     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                'ocr_completado': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
+                'validando':      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+                'revision_manual':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+                'aprobado':       '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+                'rechazado':      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+            };
+            document.getElementById('statusIcon').innerHTML = iconosSvg[status] || iconosSvg['procesando'];
+            document.getElementById('statusText').textContent = textos[status] || status;
+            document.getElementById('statusDetail').textContent = data.motivo || 'Procesando solicitud...';
+
+            // Progress steps
+            const pasos = ['recibido', 'procesando', 'validando', 'aprobado'];
+            const pasoActual = status === 'rechazado' ? 3 : pasos.indexOf(status);
+            document.querySelectorAll('.progress-step').forEach((el, i) => {
+                el.style.opacity = i <= pasoActual ? '1' : '0.3';
+                el.style.color   = i <= pasoActual ? (status === 'rechazado' && i === 3 ? '#ef4444' : '#4dd4e8') : '#555';
+            });
+            document.querySelectorAll('.progress-line').forEach((el, i) => {
+                el.style.background = i < pasoActual ? '#4dd4e8' : '#1a2540';
+            });
+
+            // Detalles
+            document.getElementById('detalles').style.display = 'block';
+            document.getElementById('detalleMonto').textContent = '$' + Number(data.monto || 0).toLocaleString('es-MX');
+            document.getElementById('detalleScore').textContent = data.score || 'En proceso';
+            document.getElementById('detalleEstado').textContent = textos[status] || status;
+
+            // Mensaje final
+            const mensajeFinal = document.getElementById('mensajeFinal');
+            if (status === 'aprobado') {
+                mensajeFinal.innerHTML = '<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:16px 20px"><div style="font-weight:600;color:#34d399;margin-bottom:4px">¡Felicidades! Tu crédito fue aprobado.</div><div style="font-size:0.88em;color:#6b7280">Un asesor se pondrá en contacto contigo para los siguientes pasos.</div></div>';
+                if (intervalo) clearInterval(intervalo);
+            } else if (status === 'rechazado') {
+                const razones = data.razones && data.razones.length > 0 ? data.razones : null;
+                const razonesHtml = razones
+                    ? '<ul style="margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">' +
+                      razones.map(r => '<li style="display:flex;align-items:flex-start;gap:8px;font-size:0.85em;color:#f87171"><svg style="flex-shrink:0;margin-top:2px" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + r + '</li>').join('') + '</ul>'
+                    : '';
+                mensajeFinal.innerHTML = '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:16px 20px"><div style="font-weight:600;color:#f87171;margin-bottom:4px">Solicitud no aprobada</div><div style="font-size:0.88em;color:#6b7280">' + (data.motivo || 'Tu solicitud no cumplió con los requisitos.') + '</div>' + razonesHtml + '</div>';
+                if (intervalo) clearInterval(intervalo);
+            } else if (status === 'revision_manual') {
+                mensajeFinal.innerHTML = '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:16px 20px"><div style="font-weight:600;color:#f59e0b;margin-bottom:4px">En revisión manual</div><div style="font-size:0.88em;color:#6b7280">Un analista está revisando tu solicitud. Te notificaremos pronto.</div></div>';
+            } else {
+                mensajeFinal.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>

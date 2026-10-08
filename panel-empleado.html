@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Empleado — CréditoFlow</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0e1a;
+      --sidebar-bg: #060912;
+      --card-bg: #0d1424;
+      --border: #1a2540;
+      --border-hover: #2a3a5f;
+      --text: #ffffff;
+      --text-2: #6b7280;
+      --text-3: #4b5563;
+      --accent: #4dd4e8;
+      --green: #10b981;
+      --green-2: #34d399;
+      --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px; min-width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 24px 0;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo .brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .sidebar-logo .brand span { color: var(--accent); }
+    .sidebar-logo .sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      color: var(--text-2); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all 0.15s; margin-bottom: 2px;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--card-bg); color: var(--text); }
+    .nav-item.active { background: rgba(77,212,232,0.08); color: var(--accent); border-left-color: var(--accent); }
+    .nav-item svg { flex-shrink: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+    .nav-revision {
+      background: rgba(245,158,11,0.06);
+      border-left-color: var(--yellow) !important;
+      color: var(--yellow) !important;
+      justify-content: space-between;
+    }
+    .nav-revision:hover { background: rgba(245,158,11,0.12) !important; color: var(--yellow) !important; }
+    .badge-count {
+      background: rgba(245,158,11,0.2); color: var(--yellow);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 10px;
+      min-width: 20px; text-align: center;
+    }
+
+    /* MAIN */
+    .main { margin-left: 220px; flex: 1; padding: 28px 32px; min-width: 0; }
+
+    .top-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px; gap: 16px;
+    }
+    .top-header h1 { font-size: 20px; font-weight: 700; }
+    .top-header .subtitle { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+    .badge-revision {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);
+      color: var(--yellow); font-size: 12px; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px;
+    }
+
+    /* EMPTY / LOADING */
+    .state-msg {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-2); font-size: 13px;
+    }
+    .state-msg svg { margin-bottom: 12px; opacity: 0.4; }
+
+    /* SOLICITUD CARD */
+    .solicitud-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+      margin-bottom: 14px;
+      transition: border-color 0.15s;
+    }
+    .solicitud-card:hover { border-color: var(--border-hover); }
+
+    .card-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 14px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .card-top .nombre { font-size: 15px; font-weight: 600; color: var(--text); }
+    .card-top .folio { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 3px; }
+    .card-top .monto { font-size: 18px; font-weight: 700; color: var(--green-2); white-space: nowrap; }
+
+    .card-meta {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-item .lbl { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-item .val { font-size: 13px; color: var(--text); font-weight: 500; }
+
+    .motivo-box {
+      display: flex; align-items: flex-start; gap: 8px;
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 8px; padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 12px; color: var(--yellow); line-height: 1.5;
+    }
+    .motivo-box svg { flex-shrink: 0; margin-top: 1px; }
+
+    .card-actions { display: flex; gap: 10px; }
+    .btn {
+      flex: 1; padding: 9px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-aprobar {
+      background: rgba(16,185,129,0.1); color: var(--green-2);
+      border-color: rgba(16,185,129,0.3);
+    }
+    .btn-aprobar:hover { background: rgba(16,185,129,0.2); border-color: var(--green); }
+    .btn-rechazar {
+      background: rgba(239,68,68,0.1); color: var(--red-2);
+      border-color: rgba(239,68,68,0.3);
+    }
+    .btn-rechazar:hover { background: rgba(239,68,68,0.2); border-color: var(--red); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; width: 100%; max-width: 420px;
+      margin: 16px;
+    }
+    .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .modal p { font-size: 12px; color: var(--text-2); margin-bottom: 16px; }
+    .modal textarea {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 13px; padding: 10px 12px;
+      resize: vertical; min-height: 80px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+    }
+    .modal textarea:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .btn-cancel {
+      flex: 1; padding: 9px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; background: transparent;
+      border: 1px solid var(--border); color: var(--text-2);
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--border-hover); color: var(--text); }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; min-width: 60px; }
+      .sidebar-logo .brand, .sidebar-logo .sub, .nav-item span, .badge-count { display: none; }
+      .main { margin-left: 60px; padding: 20px 16px; }
+    }
+    @media (max-width: 600px) {
+      .card-meta { gap: 12px; }
+      .card-top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Crédito<span>Flow</span></div>
+    <div class="sub">Portal Analytics</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/tablero.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="/" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Nueva Solicitud</span>
+    </a>
+    <a href="/panel-empleado.html" class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Panel Empleado</span>
+    </a>
+    <a href="/ia-recomendaciones.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      <span>IA Recomendaciones</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="/panel-empleado.html" class="nav-item nav-revision active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>En Revisión Manual</span>
+      <span class="badge-count" id="sidebar-count"></span>
+    </a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="top-header">
+    <div>
+      <h1>Panel de Empleado</h1>
+      <p class="subtitle">Solicitudes pendientes de revisión manual — actualiza cada 5s</p>
+    </div>
+    <div class="badge-revision">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="count-label">Cargando...</span>
+    </div>
+  </div>
+
+  <div id="listaSolicitudes">
+    <div class="state-msg">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div>Cargando solicitudes...</div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal rechazo -->
+<div class="modal-overlay" id="modalRechazo">
+  <div class="modal">
+    <h3>Rechazar solicitud</h3>
+    <p>Indica el motivo del rechazo. El solicitante podrá verlo en su seguimiento.</p>
+    <textarea id="motivoInput" placeholder="Ej: Score crediticio insuficiente, historial de pagos irregular..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-rechazar" id="btnConfirmarRechazo" style="flex:1">Confirmar rechazo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+  let pendingRechazarId = null;
+
+  cargarSolicitudes();
+  setInterval(cargarSolicitudes, 5000);
+
+  async function cargarSolicitudes() {
+    try {
+      const res = await fetch('/api/revision-manual');
+      const solicitudes = await res.json();
+      const container = document.getElementById('listaSolicitudes');
+      const n = solicitudes.length;
+
+      // Actualizar contadores
+      document.getElementById('count-label').textContent = n === 0 ? 'Sin pendientes' : n + ' pendiente' + (n !== 1 ? 's' : '');
+      const badge = document.getElementById('sidebar-count');
+      badge.textContent = n > 0 ? n : '';
+      badge.style.display = n > 0 ? 'inline-block' : 'none';
+
+      if (n === 0) {
+        container.innerHTML = '<div class="state-msg"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg><div style="color:#10b981;font-weight:600;margin-bottom:4px">Sin pendientes</div><div>No hay solicitudes en revisión manual en este momento.</div></div>';
+        return;
+      }
+
+      container.innerHTML = solicitudes.map(s => {
+        const fecha = new Date(s.fecha_creacion).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+        const monto = fmt.format(s.monto_solicitado || 0);
+        const motivoHtml = s.motivo_revision_manual
+          ? '<div class="motivo-box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + s.motivo_revision_manual + '</div>'
+          : '';
+        return '<div class="solicitud-card">' +
+          '<div class="card-top">' +
+            '<div><div class="nombre">' + (s.nombre_completo || 'Sin nombre') + '</div><div class="folio">' + s.folio + '</div></div>' +
+            '<div class="monto">' + monto + '</div>' +
+          '</div>' +
+          '<div class="card-meta">' +
+            '<div class="meta-item"><span class="lbl">Fecha</span><span class="val">' + fecha + '</span></div>' +
+            '<div class="meta-item"><span class="lbl">Score</span><span class="val">' + (s.score_credito || 'N/A') + '</span></div>' +
+            '<div class="meta-item"><span class="lbl">CURP</span><span class="val">' + (s.curp || '—') + '</span></div>' +
+          '</div>' +
+          motivoHtml +
+          '<div class="card-actions">' +
+            '<button class="btn btn-aprobar" onclick="aprobar(' + s.id + ', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Aprobar</button>' +
+            '<button class="btn btn-rechazar" onclick="abrirModalRechazo(' + s.id + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rechazar</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } catch (err) {
+      document.getElementById('listaSolicitudes').innerHTML =
+        '<div class="state-msg" style="color:var(--red-2)"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div>Error al cargar: ' + err.message + '</div></div>';
+    }
+  }
+
+  async function aprobar(id, btn) {
+    if (!confirm('¿Confirmar aprobación de esta solicitud?')) return;
+    btn.disabled = true;
+    btn.textContent = 'Aprobando...';
+    try {
+      const r = await fetch('/api/aprobar/' + id, { method: 'POST' });
+      const d = await r.json();
+      if (d.success) cargarSolicitudes();
+      else { alert('Error: ' + (d.error || 'No se pudo aprobar')); btn.disabled = false; btn.textContent = 'Aprobar'; }
+    } catch (e) {
+      alert('Error: ' + e.message);
+      btn.disabled = false;
+    }
+  }
+
+  function abrirModalRechazo(id) {
+    pendingRechazarId = id;
+    document.getElementById('motivoInput').value = '';
+    document.getElementById('modalRechazo').classList.add('open');
+    setTimeout(() => document.getElementById('motivoInput').focus(), 50);
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalRechazo').classList.remove('open');
+    pendingRechazarId = null;
+  }
+
+  document.getElementById('btnConfirmarRechazo').addEventListener('click', async () => {
+    const motivo = document.getElementById('motivoInput').value.trim() || 'Rechazado por empleado';
+    const btn = document.getElementById('btnConfirmarRechazo');
+    btn.disabled = true;
+    btn.textContent = 'Rechazando...';
+    try {
+      const r = await fetch('/api/rechazar/' + pendingRechazarId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo })
+      });
+      const d = await r.json();
+      cerrarModal();
+      if (d.success) cargarSolicitudes();
+      else alert('Error: ' + (d.error || 'No se pudo rechazar'));
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar rechazo';
+    }
+  });
+
+  // Cerrar modal al hacer click fuera
+  document.getElementById('modalRechazo').addEventListener('click', e => {
+    if (e.target === e.currentTarget) cerrarModal();
+  });
+</script>
+</body>
+</html>

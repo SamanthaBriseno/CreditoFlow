@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CréditoFlow — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0e1a;
+      --sidebar-bg: #060912;
+      --card-bg: #0d1424;
+      --card-hover: #111a30;
+      --border: #1a2540;
+      --border-hover: #2a3a5f;
+      --text: #ffffff;
+      --text-2: #6b7280;
+      --text-3: #4b5563;
+      --accent: #4dd4e8;
+      --accent-hover: #38b8cc;
+      --green: #10b981;
+      --green-2: #34d399;
+      --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #f59e0b;
+      --icon-blue: rgba(77,212,232,0.15);
+      --icon-green: rgba(16,185,129,0.15);
+      --icon-red: rgba(239,68,68,0.15);
+      --icon-yellow: rgba(245,158,11,0.15);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo .brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .sidebar-logo .brand span { color: var(--accent); }
+    .sidebar-logo .sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--card-bg); color: var(--text); }
+    .nav-item.active {
+      background: rgba(77,212,232,0.08);
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .nav-item svg { flex-shrink: 0; }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 28px 32px;
+      min-width: 0;
+    }
+
+    /* ── HEADER ── */
+    .top-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      gap: 16px;
+    }
+    .top-header h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+    .top-header .subtitle { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+    .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+
+    .range-selector { display: flex; gap: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+    .range-btn {
+      padding: 5px 12px; border-radius: 6px; border: none; background: transparent;
+      color: var(--text-2); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+    }
+    .range-btn:hover { color: var(--text); }
+    .range-btn.active { background: var(--accent); color: #000; font-weight: 600; }
+
+    .user-avatar { display: flex; align-items: center; gap: 10px; }
+    .avatar-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(77,212,232,0.2); border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+    }
+    .user-info .name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .user-info .role { font-size: 11px; color: var(--text-2); }
+
+    /* ── KPIs ── */
+    .kpi-grid-1 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+    .kpi-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+
+    .kpi {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.15s;
+      position: relative;
+    }
+    .kpi:hover { border-color: var(--border-hover); }
+
+    .kpi-icon {
+      position: absolute; top: 16px; right: 16px;
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .kpi-icon.blue { background: var(--icon-blue); }
+    .kpi-icon.green { background: var(--icon-green); }
+    .kpi-icon.red { background: var(--icon-red); }
+    .kpi-icon.yellow { background: var(--icon-yellow); }
+
+    .kpi .label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi .value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .kpi .value.green { color: var(--green-2); }
+    .kpi .value.red { color: var(--red-2); }
+    .kpi .value.yellow { color: var(--yellow); }
+    .kpi .value.accent { color: var(--accent); }
+    .kpi .sub { font-size: 11px; color: var(--text-2); }
+    .kpi .sub.green { color: var(--green); }
+    .kpi .sub.red { color: var(--red-2); }
+
+    /* ── CHARTS LAYOUT ── */
+    .charts-row-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .charts-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .charts-row-3 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+
+    .card-header { margin-bottom: 16px; }
+    .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+    .card-header p { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .card canvas { max-height: 260px; }
+
+    /* ── TOP 5 LISTS ── */
+    .top5-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .top5-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: rgba(255,255,255,0.02);
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .top5-rank { font-size: 11px; font-weight: 700; color: var(--text-3); width: 16px; flex-shrink: 0; }
+    .top5-name { flex: 1; font-size: 13px; color: var(--text); }
+    .top5-amount { font-size: 13px; font-weight: 600; }
+    .top5-amount.green { color: var(--green-2); }
+    .top5-amount.red { color: var(--red-2); }
+
+    /* ── REJECTION BARS ── */
+    .rejection-list { display: flex; flex-direction: column; gap: 10px; }
+    .rejection-item { display: flex; flex-direction: column; gap: 4px; }
+    .rejection-label { display: flex; justify-content: space-between; align-items: center; }
+    .rejection-label span:first-child { font-size: 12px; color: var(--text); }
+    .rejection-label span:last-child { font-size: 11px; color: var(--text-2); }
+    .rejection-bar-bg { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    .rejection-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+    /* ── TABLE ── */
+    .tabla-wrap { overflow-x: auto; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tabla th {
+      text-align: left; padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2); font-weight: 600; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+    }
+    .tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(26,37,64,0.5); color: #c9d1d9; }
+    .tabla tr:last-child td { border-bottom: none; }
+    .tabla tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge.aprobado { background: rgba(16,185,129,0.15); color: var(--green-2); }
+    .badge.rechazado { background: rgba(239,68,68,0.15); color: var(--red-2); }
+    .badge.revision_manual { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge.recibido { background: rgba(77,212,232,0.15); color: var(--accent); }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .nav-revision {
+      background: rgba(245,158,11,0.06);
+      border-left-color: var(--yellow) !important;
+      color: var(--yellow) !important;
+      justify-content: space-between;
+    }
+    .nav-revision:hover { background: rgba(245,158,11,0.12) !important; color: var(--yellow) !important; }
+    .badge-count {
+      background: rgba(245,158,11,0.2);
+      color: var(--yellow);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1200px) {
+      .kpi-grid-1 { grid-template-columns: repeat(2, 1fr); }
+      .charts-row-1 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; min-width: 60px; }
+      .sidebar-logo .brand, .sidebar-logo .sub, .nav-item span { display: none; }
+      .main { margin-left: 60px; padding: 20px 16px; }
+      .charts-row-2, .charts-row-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .kpi-grid-1, .kpi-grid-2 { grid-template-columns: 1fr 1fr; }
+      .header-right { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Crédito<span>Flow</span></div>
+    <div class="sub">Portal Analytics</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/tablero.html" class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="/" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>Nueva Solicitud</span>
+    </a>
+    <a href="/panel-empleado.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Panel Empleado</span>
+    </a>
+    <a href="/ia-recomendaciones.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      <span>IA Recomendaciones</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="/seguimiento.html" class="nav-item nav-revision">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>En Revisión Manual</span>
+      <span class="badge-count" id="sidebar-revision">—</span>
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- HEADER -->
+  <div class="top-header">
+    <div>
+      <h1>Dashboard de Evaluación Crediticia</h1>
+      <p class="subtitle">Actualizado: <span id="last-update">—</span></p>
+    </div>
+    <div class="header-right">
+      <div class="range-selector">
+        <button class="range-btn" data-days="7">7 días</button>
+        <button class="range-btn active" data-days="30">30 días</button>
+        <button class="range-btn" data-days="90">90 días</button>
+      </div>
+      <div class="user-avatar">
+        <div class="avatar-circle">U</div>
+        <div class="user-info">
+          <div class="name">Usuario</div>
+          <div class="role">Gerente de Crédito</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs ROW 1 -->
+  <div class="kpi-grid-1">
+    <div class="kpi">
+      <div class="kpi-icon yellow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="label">Tiempo Promedio</div>
+      <div class="value accent" id="kpi-tiempo">—</div>
+      <div class="sub" id="kpi-tiempo-sub">segundos</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon green">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="label">Solicitudes Exitosas</div>
+      <div class="value green" id="kpi-aprobadas">—</div>
+      <div class="sub green" id="kpi-tasa-sub">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon red">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="label">Solicitudes Rechazadas</div>
+      <div class="value red" id="kpi-rechazadas">—</div>
+      <div class="sub" id="kpi-tasa-rechazo">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="label">Total Solicitudes</div>
+      <div class="value" id="kpi-total">—</div>
+      <div class="sub" id="kpi-ventana">Ventana: 30 días</div>
+    </div>
+  </div>
+
+  <!-- KPIs ROW 2 -->
+  <div class="kpi-grid-2">
+    <div class="kpi">
+      <div class="kpi-icon blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="label">Monto Total Solicitado</div>
+      <div class="value green" id="kpi-monto-total">—</div>
+      <div class="sub">Ticket promedio: <span id="kpi-ticket">—</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon red">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="label">Monto Total Rechazado</div>
+      <div class="value red" id="kpi-monto-rechazado">—</div>
+      <div class="sub">Monto aprobado: <span id="kpi-monto-aprobado">—</span></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1: Evolución grande + Distribución dona -->
+  <div class="charts-row-1">
+    <div class="card">
+      <div class="card-header">
+        <h3>Evolución de Montos</h3>
+        <p>Crédito solicitado vs rechazado por día</p>
+      </div>
+      <canvas id="chart-volumen"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>Distribución</h3>
+        <p>Solicitudes por resultado</p>
+      </div>
+      <canvas id="chart-scores" style="max-height:220px"></canvas>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2: Causas de rechazo + Montos bar -->
+  <div class="charts-row-2">
+    <div class="card">
+      <div class="card-header">
+        <h3>Top 5 Causas de Rechazo</h3>
+        <p>Por volumen de solicitudes</p>
+      </div>
+      <div class="rejection-list" id="rejection-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>Monto Solicitado vs Aprobado</h3>
+        <p>Comparativa de montos</p>
+      </div>
+      <canvas id="chart-montos"></canvas>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 3: Top 5 listas -->
+  <div class="charts-row-3">
+    <div class="card">
+      <div class="card-header">
+        <h3>Top 5 Montos Aprobados</h3>
+        <p>Por cliente</p>
+      </div>
+      <ul class="top5-list" id="top5-aprobados"></ul>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>Top 5 Montos Rechazados</h3>
+        <p>Por cliente</p>
+      </div>
+      <ul class="top5-list" id="top5-rechazados"></ul>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Últimas Solicitudes</h3>
+      <p>Las 10 solicitudes más recientes</p>
+    </div>
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Folio</th><th>Nombre</th><th>Monto</th><th>Score</th>
+            <th>Status</th><th>Motivo</th><th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-solicitudes"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+  const fmtM = v => {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'k';
+    return fmt.format(v);
+  };
+
+  const GRID_COLOR = 'rgba(255,255,255,0.05)';
+  const TICK_COLOR = '#4b5563';
+  const baseScales = {
+    x: { ticks: { color: TICK_COLOR, font: { size: 11 } }, grid: { color: GRID_COLOR } },
+    y: { ticks: { color: TICK_COLOR, font: { size: 11 } }, grid: { color: GRID_COLOR }, beginAtZero: true }
+  };
+
+  let charts = {};
+  function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+  document.querySelectorAll('.range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('kpi-ventana').textContent = 'Ventana: ' + btn.dataset.days + ' días';
+      cargarTodo();
+    });
+  });
+
+  async function cargarKPIs() {
+    const d = await (await fetch('/api/dashboard/kpis')).json();
+    const s = d.solicitudes, m = d.montos, t = d.tiempos;
+    document.getElementById('kpi-total').textContent = s.total.toLocaleString('es-MX');
+    document.getElementById('kpi-aprobadas').textContent = s.aprobadas.toLocaleString('es-MX');
+    document.getElementById('kpi-rechazadas').textContent = s.rechazadas.toLocaleString('es-MX');
+    document.getElementById('kpi-tasa-sub').textContent = '+' + s.tasa_aprobacion + '% tasa de aprobación';
+    document.getElementById('kpi-tasa-rechazo').textContent = (100 - s.tasa_aprobacion).toFixed(1) + '% tasa de rechazo';
+    document.getElementById('kpi-tiempo').textContent = t.promedio_seg.toFixed(1) + 's';
+    document.getElementById('kpi-ticket').textContent = fmt.format(m.ticket_promedio);
+    document.getElementById('kpi-monto-total').textContent = fmtM(m.total);
+    document.getElementById('kpi-monto-rechazado').textContent = fmtM(m.rechazado);
+    document.getElementById('kpi-monto-aprobado').textContent = fmtM(m.aprobado);
+    document.getElementById('last-update').textContent = new Date().toLocaleString('es-MX');
+    // Badge sidebar revisión manual
+    const rev = s.en_revision || 0;
+    const badge = document.getElementById('sidebar-revision');
+    badge.textContent = rev > 0 ? rev : '';
+    badge.style.display = rev > 0 ? 'inline-block' : 'none';
+  }
+
+  async function cargarVolumen() {
+    const data = await (await fetch('/api/dashboard/volumen')).json();
+    destroyChart('volumen');
+    charts['volumen'] = new Chart(document.getElementById('chart-volumen'), {
+      type: 'line',
+      data: {
+        labels: data.map(d => String(d.fecha).slice(5, 10)),
+        datasets: [
+          { label: 'Aprobadas', data: data.map(d => d.aprobadas), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true, pointRadius: 2 },
+          { label: 'Rechazadas', data: data.map(d => d.rechazadas), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', tension: 0.4, fill: true, pointRadius: 2 },
+          { label: 'En revisión', data: data.map(d => d.revision), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.06)', tension: 0.4, fill: true, pointRadius: 2 }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { labels: { color: '#6b7280', boxWidth: 12, font: { size: 11 } } } }, scales: baseScales }
+    });
+  }
+
+  async function cargarRechazos() {
+    const data = await (await fetch('/api/dashboard/rechazos')).json();
+    const top5 = data.slice(0, 5);
+    const maxVal = top5[0] ? top5[0].total : 1;
+    const total = top5.reduce((a, d) => a + d.total, 0);
+    const colors = ['#ef4444', '#f87171', '#a855f7', '#4dd4e8', '#f59e0b'];
+    document.getElementById('rejection-bars').innerHTML = top5.map((d, i) => {
+      const pct = total > 0 ? Math.round((d.total / total) * 100) : 0;
+      const w = maxVal > 0 ? (d.total / maxVal) * 100 : 0;
+      return '<div class="rejection-item"><div class="rejection-label"><span>' + d.motivo + '</span><span>' + d.total + ' · ' + pct + '%</span></div><div class="rejection-bar-bg"><div class="rejection-bar" style="width:' + w + '%;background:' + colors[i] + '"></div></div></div>';
+    }).join('');
+  }
+
+  async function cargarScores() {
+    const data = await (await fetch('/api/dashboard/scores')).json();
+    destroyChart('scores');
+    charts['scores'] = new Chart(document.getElementById('chart-scores'), {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.rango),
+        datasets: [{ data: data.map(d => d.total), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#4dd4e8'], borderColor: '#0d1424', borderWidth: 2 }]
+      },
+      options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7280', boxWidth: 10, font: { size: 11 }, padding: 12 } } } }
+    });
+  }
+
+  async function cargarMontos() {
+    const d = await (await fetch('/api/dashboard/kpis')).json();
+    destroyChart('montos');
+    charts['montos'] = new Chart(document.getElementById('chart-montos'), {
+      type: 'bar',
+      data: {
+        labels: ['Total', 'Aprobado', 'Rechazado'],
+        datasets: [{ data: [d.montos.total, d.montos.aprobado, d.montos.rechazado], backgroundColor: ['#4dd4e8', '#10b981', '#ef4444'], borderRadius: 4 }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: TICK_COLOR, font: { size: 11 } }, grid: { color: GRID_COLOR } },
+          y: { ticks: { color: TICK_COLOR, font: { size: 11 }, callback: v => fmtM(v) }, grid: { color: GRID_COLOR }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  async function cargarSolicitudes() {
+    const data = await (await fetch('/api/dashboard/solicitudes?limit=10')).json();
+    document.getElementById('tbody-solicitudes').innerHTML = data.map(s =>
+      '<tr><td style="color:#4dd4e8;font-weight:600">' + s.folio + '</td><td>' + (s.nombre_completo || '—') + '</td><td>' + fmt.format(s.monto_solicitado || 0) + '</td><td>' + (s.score_credito || 0) + '</td><td><span class="badge ' + s.status + '">' + s.status + '</span></td><td style="color:#6b7280">' + (s.motivo_rechazo || '—') + '</td><td style="color:#6b7280">' + new Date(s.fecha_creacion).toLocaleDateString('es-MX') + '</td></tr>'
+    ).join('');
+  }
+
+  function renderTop5() {
+    const aprobados = [
+      { nombre: 'Carlos Mendoza', monto: 850000 },
+      { nombre: 'Laura Jiménez', monto: 720000 },
+      { nombre: 'Roberto Sánchez', monto: 650000 },
+      { nombre: 'María González', monto: 580000 },
+      { nombre: 'Andrés Torres', monto: 490000 }
+    ];
+    const rechazados = [
+      { nombre: 'Pedro Ramírez', monto: 920000 },
+      { nombre: 'Sofía Herrera', monto: 780000 },
+      { nombre: 'Diego Morales', monto: 610000 },
+      { nombre: 'Valeria Cruz', monto: 540000 },
+      { nombre: 'Javier Flores', monto: 430000 }
+    ];
+    document.getElementById('top5-aprobados').innerHTML = aprobados.map((c, i) =>
+      '<li class="top5-item"><span class="top5-rank">' + (i+1) + '</span><span class="top5-name">' + c.nombre + '</span><span class="top5-amount green">' + fmt.format(c.monto) + '</span></li>'
+    ).join('');
+    document.getElementById('top5-rechazados').innerHTML = rechazados.map((c, i) =>
+      '<li class="top5-item"><span class="top5-rank">' + (i+1) + '</span><span class="top5-name">' + c.nombre + '</span><span class="top5-amount red">' + fmt.format(c.monto) + '</span></li>'
+    ).join('');
+  }
+
+  async function cargarTodo() {
+    await Promise.all([cargarKPIs(), cargarVolumen(), cargarRechazos(), cargarScores(), cargarMontos(), cargarSolicitudes()]);
+    renderTop5();
+  }
+
+  cargarTodo();
+  setInterval(cargarTodo, 30000);
+</script>
+</body>
+</html>

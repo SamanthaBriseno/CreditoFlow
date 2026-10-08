@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Crédito - Modo Prueba</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .test-badge {
+            display: inline-block;
+            background: #1a2a3a;
+            color: #6ba3d4;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+            border: 1px solid #2a4a6a;
+        }
+        .test-badge::before {
+            content: '🧪 ';
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="test-badge">MODO PRUEBA - 1 sola imagen</span>
+            <h1>🏦 Solicitud de Crédito (Test)</h1>
+            <p class="subtitle">Sube una sola imagen con todos los datos del solicitante</p>
+        </div>
+
+        <form id="solicitudForm">
+            <!-- Datos personales -->
+            <div class="form-section">
+                <h2>Datos del solicitante</h2>
+
+                <div class="form-group">
+                    <label for="nombre">Nombre completo *</label>
+                    <input type="text" id="nombre" placeholder="Ej: Juan Pérez Gómez" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="monto">Monto solicitado (MXN) *</label>
+                    <input type="number" id="monto" placeholder="Ej: 50000" min="1000" step="1000" required>
+                    <small class="help-text">Monto mínimo: $1,000 MXN</small>
+                </div>
+            </div>
+
+            <!-- Documento único -->
+            <div class="form-section">
+                <h2>Documento consolidado *</h2>
+                <p class="subtext">Sube UNA imagen que contenga: identificación, domicilio, ingresos y referencias</p>
+
+                <div class="upload-group-single">
+                    <label class="upload-box upload-box-large" id="upload-unico">
+                        <input type="file" id="documento" accept="image/jpeg,image/png,image/jpg" required>
+                        <div class="upload-content">
+                            <span class="icon">📄</span>
+                            <span class="label">Documento consolidado</span>
+                            <span class="file-name">Seleccionar imagen</span>
+                            <span class="required">* JPG/PNG - Máx 2MB</span>
+                        </div>
+                        <div class="file-error" style="display:none;"></div>
+                    </label>
+                </div>
+
+                <div class="contador-docs">
+                    📄 Documento: <span id="numDocs">0</span>/1
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit" disabled>
+                <span class="btn-text">Enviar solicitud de prueba</span>
+            </button>
+        </form>
+
+        <div id="mensaje" class="mensaje" style="display: none;"></div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #2a2a2a; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+    <a href="/" style="color: #888; text-decoration: none;">← Producción</a>
+    <a href="/seguimiento.html" style="color: #888; text-decoration: none;">🔍 Seguimiento</a>
+    <a href="/panel-empleado.html" style="color: #888; text-decoration: none;">👤 Panel empleado</a>
+    <a href="/tablero.html" style="color: #7cb87c; text-decoration: none; font-weight: 600;">📊 Tablero</a>
+    <a href="/ia-recomendaciones.html" style="color: #7cb87c; text-decoration: none; font-weight: 600;">🤖 IA</a>
+</div>
+
+    <script src="script-test.js"></script>
+</body>
+</html>

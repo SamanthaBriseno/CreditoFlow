@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Recomendaciones — CréditoFlow</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0e1a;
+      --sidebar-bg: #060912;
+      --card-bg: #0d1424;
+      --border: #1a2540;
+      --border-hover: #2a3a5f;
+      --text: #ffffff;
+      --text-2: #6b7280;
+      --text-3: #4b5563;
+      --accent: #4dd4e8;
+      --green: #10b981;
+      --green-2: #34d399;
+      --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px; min-width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 24px 0;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo .brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .sidebar-logo .brand span { color: var(--accent); }
+    .sidebar-logo .sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      color: var(--text-2); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all 0.15s; margin-bottom: 2px;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--card-bg); color: var(--text); }
+    .nav-item.active { background: rgba(77,212,232,0.08); color: var(--accent); border-left-color: var(--accent); }
+    .nav-item svg { flex-shrink: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+    .nav-revision {
+      background: rgba(245,158,11,0.06);
+      border-left-color: var(--yellow) !important;
+      color: var(--yellow) !important;
+      justify-content: space-between;
+    }
+    .nav-revision:hover { background: rgba(245,158,11,0.12) !important; color: var(--yellow) !important; }
+    .badge-count {
+      background: rgba(245,158,11,0.2); color: var(--yellow);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 10px;
+      min-width: 20px; text-align: center;
+    }
+
+    /* ── MAIN ── */
+    .main { margin-left: 220px; flex: 1; padding: 28px 32px; min-width: 0; }
+
+    /* ── HEADER ── */
+    .top-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px; gap: 16px;
+    }
+    .top-header h1 { font-size: 20px; font-weight: 700; }
+    .top-header .subtitle { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+    .btn-regenerar {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(77,212,232,0.1);
+      border: 1px solid rgba(77,212,232,0.3);
+      color: var(--accent); border-radius: 8px;
+      padding: 9px 18px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-regenerar:hover { background: rgba(77,212,232,0.18); border-color: var(--accent); }
+    .btn-regenerar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── CACHE BADGE ── */
+    .cache-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; padding: 5px 12px; border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .cache-badge.cached { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: var(--yellow); }
+    .cache-badge.fresh { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--green-2); }
+    .cache-badge button {
+      background: none; border: none; color: var(--accent);
+      cursor: pointer; font-size: 12px; font-weight: 600;
+      text-decoration: underline; padding: 0;
+    }
+
+    /* ── LOADER ── */
+    .loader { display: none; text-align: center; padding: 80px 20px; color: var(--text-2); }
+    .loader.active { display: block; }
+    .spinner {
+      border: 2px solid var(--border);
+      border-top: 2px solid var(--accent);
+      border-radius: 50%; width: 36px; height: 36px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader p { font-size: 13px; }
+    .loader small { font-size: 11px; color: var(--text-3); margin-top: 6px; display: block; }
+
+    /* ── ESTADO VACÍO ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 80px 20px;
+      color: var(--text-2); text-align: center; gap: 12px;
+    }
+    .empty-state svg { opacity: 0.25; }
+    .empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
+    .empty-state .hint { font-size: 12px; color: var(--text-3); }
+
+    /* ── ERROR ── */
+    .error-box {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 10px; padding: 16px 20px;
+      color: var(--red-2); font-size: 13px;
+      margin-bottom: 20px; line-height: 1.6;
+    }
+    .error-box code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+    /* ── STATS MINI ── */
+    .stats-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-mini {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      transition: border-color 0.15s;
+    }
+    .stat-mini:hover { border-color: var(--border-hover); }
+    .stat-mini .l { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-mini .v { font-size: 20px; font-weight: 700; color: var(--text); margin-top: 4px; }
+
+    /* ── RESUMEN ── */
+    .resumen-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 600; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-label svg { opacity: 0.7; }
+    .resumen-card p { color: #c9d1d9; line-height: 1.7; font-size: 13px; }
+
+    /* ── RECOMENDACIONES ── */
+    .section-title {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      margin: 28px 0 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .recomendaciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+    .rec-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+      transition: border-color 0.15s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .rec-card:hover { border-color: var(--border-hover); }
+    .rec-card h3 { font-size: 14px; font-weight: 600; color: var(--text); }
+    .rec-card p { font-size: 12px; color: var(--text-2); line-height: 1.6; flex: 1; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+    .tag.alto { background: rgba(239,68,68,0.12); color: var(--red-2); }
+    .tag.medio { background: rgba(245,158,11,0.12); color: var(--yellow); }
+    .tag.bajo { background: rgba(16,185,129,0.12); color: var(--green-2); }
+
+    /* ── LISTAS (quick wins / riesgos) ── */
+    .lists-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .list-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .list-card ul { list-style: none; display: flex; flex-direction: column; gap: 0; }
+    .list-card li {
+      font-size: 13px; color: #c9d1d9;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+      line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;
+    }
+    .list-card li:last-child { border-bottom: none; }
+    .list-card li::before { content: ''; flex-shrink: 0; }
+    .li-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      margin-top: 5px; flex-shrink: 0;
+    }
+    .li-dot.green { background: var(--green); }
+    .li-dot.red { background: var(--red); }
+
+    /* ── CONTENIDO ── */
+    .contenido { display: none; }
+    .contenido.active { display: block; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .stats-mini { grid-template-columns: repeat(3, 1fr); }
+      .lists-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; min-width: 60px; }
+      .sidebar-logo .brand, .sidebar-logo .sub, .nav-item span, .badge-count { display: none; }
+      .main { margin-left: 60px; padding: 20px 16px; }
+      .stats-mini { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .recomendaciones { grid-template-columns: 1fr; }
+      .top-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Crédito<span>Flow</span></div>
+    <div class="sub">Portal Analytics</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/tablero.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="/" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Nueva Solicitud</span>
+    </a>
+    <a href="/panel-empleado.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Panel Empleado</span>
+    </a>
+    <a href="/ia-recomendaciones.html" class="nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      <span>IA Recomendaciones</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="/panel-empleado.html" class="nav-item nav-revision">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>En Revisión Manual</span>
+      <span class="badge-count" id="sidebar-revision" style="display:none"></span>
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="top-header">
+    <div>
+      <h1>IA Recomendaciones</h1>
+      <p class="subtitle">Análisis de causas de rechazo y acciones para incrementar la colocación</p>
+    </div>
+    <button class="btn-regenerar" id="btnAnalizar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Regenerar análisis
+    </button>
+  </div>
+
+  <div id="cache-info"></div>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Generando análisis con Ollama...</p>
+    <small id="loader-timer">0s</small>
+  </div>
+
+  <div id="errorContainer"></div>
+
+  <!-- Estado vacío: sin análisis previo -->
+  <div class="empty-state" id="emptyState">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+    <p>No hay ningún análisis generado todavía.</p>
+    <span class="hint">Haz clic en "Regenerar análisis" para que la IA analice los datos actuales.</span>
+  </div>
+
+  <div class="contenido" id="contenido">
+
+    <div class="stats-mini" id="stats-mini"></div>
+
+    <div class="resumen-card">
+      <div class="section-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Diagnóstico general
+      </div>
+      <p id="resumen-texto"></p>
+    </div>
+
+    <div class="section-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Recomendaciones
+    </div>
+    <div class="recomendaciones" id="recomendaciones"></div>
+
+    <div class="lists-row">
+      <div class="list-card">
+        <div class="section-label" style="margin-bottom:12px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Quick wins
+        </div>
+        <ul id="quick-wins"></ul>
+      </div>
+      <div class="list-card">
+        <div class="section-label" style="margin-bottom:12px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Riesgos a monitorear
+        </div>
+        <ul id="riesgos"></ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+  let timerInterval = null;
+
+  // Badge revisión manual
+  fetch('/api/dashboard/kpis').then(r => r.json()).then(d => {
+    const rev = d.solicitudes.en_revision || 0;
+    const badge = document.getElementById('sidebar-revision');
+    if (rev > 0) { badge.textContent = rev; badge.style.display = 'inline-block'; }
+  }).catch(() => {});
+
+  // Al entrar: cargar desde caché SIN loader (instantáneo si existe)
+  cargarDesdeCache();
+
+  document.getElementById('btnAnalizar').addEventListener('click', () => regenerar());
+
+  async function cargarDesdeCache() {
+    try {
+      const res = await fetch('/api/ia/recomendaciones');
+      const data = await res.json();
+      if (!res.ok || !data.analisis) {
+        // No hay caché — mostrar estado vacío
+        mostrarEstado('empty');
+        return;
+      }
+      const hora = new Date(data.fecha_analisis).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('cache-info').innerHTML =
+        '<div class="cache-badge cached"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+        + 'Análisis del ' + hora + '</div>';
+      render(data);
+      mostrarEstado('content');
+    } catch {
+      mostrarEstado('empty');
+    }
+  }
+
+  async function regenerar() {
+    const btn = document.getElementById('btnAnalizar');
+    const errorContainer = document.getElementById('errorContainer');
+    errorContainer.innerHTML = '';
+    document.getElementById('cache-info').innerHTML = '';
+    btn.disabled = true;
+    btn.querySelector('svg').style.animation = 'spin 0.8s linear infinite';
+    mostrarEstado('loader');
+
+    // Timer visible
+    let secs = 0;
+    const timerEl = document.getElementById('loader-timer');
+    timerEl.textContent = '0s';
+    timerInterval = setInterval(() => { secs++; timerEl.textContent = secs + 's'; }, 1000);
+
+    try {
+      const res = await fetch('/api/ia/recomendaciones/forzar', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al generar');
+
+      const hora = new Date().toLocaleString('es-MX', { timeStyle: 'short' });
+      document.getElementById('cache-info').innerHTML =
+        '<div class="cache-badge fresh"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+        + 'Recién generado · ' + hora + ' (' + secs + 's)</div>';
+      render(data);
+      mostrarEstado('content');
+    } catch (e) {
+      mostrarEstado('empty');
+      errorContainer.innerHTML = '<div class="error-box"><strong>Error:</strong> ' + e.message
+        + '<br><small>Asegúrate de que Ollama esté corriendo: <code>ollama serve</code></small></div>';
+    } finally {
+      clearInterval(timerInterval);
+      btn.disabled = false;
+      btn.querySelector('svg').style.animation = '';
+    }
+  }
+
+  function mostrarEstado(estado) {
+    document.getElementById('loader').classList.toggle('active', estado === 'loader');
+    document.getElementById('emptyState').style.display  = estado === 'empty'   ? 'flex' : 'none';
+    document.getElementById('contenido').classList.toggle('active', estado === 'content');
+  }
+
+  function render(data) {
+    const { datos, analisis } = data;
+    document.getElementById('stats-mini').innerHTML = [
+      { l: 'Solicitudes (30d)', v: datos.total,                              c: '' },
+      { l: 'Aprobadas',         v: datos.aprobadas,                          c: 'color:var(--green-2)' },
+      { l: 'Rechazadas',        v: datos.rechazadas,                         c: 'color:var(--red-2)' },
+      { l: 'En revisión',       v: datos.revision,                           c: 'color:var(--yellow)' },
+      { l: 'Ticket prom.',      v: fmt.format(datos.ticket_promedio),        c: '' },
+      { l: 'Score prom.',       v: Number(datos.score_promedio).toFixed(1),  c: '' }
+    ].map(s => '<div class="stat-mini"><div class="l">' + s.l + '</div><div class="v" style="' + s.c + '">' + s.v + '</div></div>').join('');
+
+    document.getElementById('resumen-texto').textContent = analisis.resumen || 'Sin diagnóstico disponible.';
+
+    const recs = analisis.recomendaciones || [];
+    document.getElementById('recomendaciones').innerHTML = recs.length === 0
+      ? '<div class="rec-card"><p>Sin recomendaciones generadas.</p></div>'
+      : recs.map(r => {
+          const imp = (r.impacto || 'medio').toLowerCase();
+          const esf = (r.esfuerzo || 'medio').toLowerCase();
+          return '<div class="rec-card"><h3>' + (r.titulo || 'Recomendación') + '</h3><p>' + (r.descripcion || '') + '</p>'
+            + '<div class="tags"><span class="tag ' + imp + '">Impacto: ' + (r.impacto || 'N/A') + '</span>'
+            + '<span class="tag ' + esf + '">Esfuerzo: ' + (r.esfuerzo || 'N/A') + '</span></div></div>';
+        }).join('');
+
+    const qw = analisis.quick_wins || [];
+    document.getElementById('quick-wins').innerHTML = qw.length === 0
+      ? '<li><span class="li-dot green"></span>Sin quick wins</li>'
+      : qw.map(x => '<li><span class="li-dot green"></span>' + x + '</li>').join('');
+
+    const riesgos = analisis.riesgos || [];
+    document.getElementById('riesgos').innerHTML = riesgos.length === 0
+      ? '<li><span class="li-dot red"></span>Sin riesgos identificados</li>'
+      : riesgos.map(x => '<li><span class="li-dot red"></span>' + x + '</li>').join('');
+  }
+</script>
+</body>
+</html>

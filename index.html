@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Crédito</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                CréditoFlow
+            </a>
+            <div class="navbar-links">
+                <a href="/" class="active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Solicitud
+                </a>
+                <a href="/seguimiento.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Seguimiento
+                </a>
+                <div class="navbar-divider"></div>
+                <a href="/tablero.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    Tablero
+                </a>
+                <a href="/panel-empleado.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Empleado
+                </a>
+                <a href="/ia-recomendaciones.html">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+                    IA
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Evaluación crediticia automatizada
+            </div>
+            <h1>Carga tus documentos</h1>
+            <p class="subtitle">Sube los documentos requeridos. Nuestro motor IA validará y evaluará tu solicitud en segundos.</p>
+        </div>
+
+        <form id="solicitudForm">
+            <!-- Datos del solicitante -->
+            <div class="form-section">
+                <h2>Datos del solicitante</h2>
+                <div class="form-group">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" placeholder="Ej: Juan Pérez Gómez" required>
+                </div>
+                <div class="form-group">
+                    <label for="monto">Monto solicitado (MXN)</label>
+                    <input type="number" id="monto" placeholder="Ej: 50000" min="1000" step="1000" required>
+                    <small class="help-text">Monto mínimo: $1,000 MXN</small>
+                </div>
+            </div>
+
+            <!-- Documentos -->
+            <div class="form-section">
+                <h2>Documentos requeridos</h2>
+                <p class="subtext">Todos los documentos son obligatorios · Solo imágenes JPG/PNG (máx 2MB)</p>
+
+                <div class="upload-group">
+
+                    <label class="upload-box" id="upload-id">
+                        <input type="file" id="id" accept="image/jpeg,image/png,image/jpg" required>
+                        <div class="step-number">1</div>
+                        <div class="step-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h2"/></svg>
+                        </div>
+                        <div class="upload-content">
+                            <span class="label">Identificación oficial</span>
+                            <span class="step-desc">INE, Pasaporte o Cédula Profesional (ambas caras)</span>
+                            <span class="file-name">Seleccionar archivo</span>
+                            <span class="required">JPG/PNG · Máx 2MB</span>
+                        </div>
+                        <div class="step-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                            Subir
+                        </div>
+                        <div class="file-error" style="display:none;"></div>
+                    </label>
+
+                    <label class="upload-box" id="upload-domicilio">
+                        <input type="file" id="domicilio" accept="image/jpeg,image/png,image/jpg" required>
+                        <div class="step-number">2</div>
+                        <div class="step-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="1.5"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+                        </div>
+                        <div class="upload-content">
+                            <span class="label">Comprobante de domicilio</span>
+                            <span class="step-desc">CFE, TELMEX, IZZI o estado de cuenta bancario (máx. 3 meses)</span>
+                            <span class="file-name">Seleccionar archivo</span>
+                            <span class="required">JPG/PNG · Máx 2MB</span>
+                        </div>
+                        <div class="step-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                            Subir
+                        </div>
+                        <div class="file-error" style="display:none;"></div>
+                    </label>
+
+                    <label class="upload-box" id="upload-ingresos">
+                        <input type="file" id="ingresos" accept="image/jpeg,image/png,image/jpg" required>
+                        <div class="step-number">3</div>
+                        <div class="step-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 14a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M2 11h20M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/></svg>
+                        </div>
+                        <div class="upload-content">
+                            <span class="label">Comprobante de ingresos</span>
+                            <span class="step-desc">Recibos de nómina, declaración fiscal o estados de cuenta (últimos 3 meses)</span>
+                            <span class="file-name">Seleccionar archivo</span>
+                            <span class="required">JPG/PNG · Máx 2MB</span>
+                        </div>
+                        <div class="step-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                            Subir
+                        </div>
+                        <div class="file-error" style="display:none;"></div>
+                    </label>
+
+                    <label class="upload-box" id="upload-referencias">
+                        <input type="file" id="referencias" accept="image/jpeg,image/png,image/jpg" required>
+                        <div class="step-number">4</div>
+                        <div class="step-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4dd4e8" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="upload-content">
+                            <span class="label">Referencias personales</span>
+                            <span class="step-desc">Dos referencias con nombre, teléfono y parentesco</span>
+                            <span class="file-name">Seleccionar archivo</span>
+                            <span class="required">JPG/PNG · Máx 2MB</span>
+                        </div>
+                        <div class="step-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                            Subir
+                        </div>
+                        <div class="file-error" style="display:none;"></div>
+                    </label>
+                </div>
+
+                <div class="contador-docs">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Documentos subidos: <span id="numDocs">0</span>/4
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit" disabled>
+                <span class="btn-text">Iniciar evaluación crediticia</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </form>
+
+        <p class="footer-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Tus documentos se procesan bajo cifrado AES-256 y no se almacenan permanentemente.
+        </p>
+
+        <div id="mensaje" class="mensaje" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
