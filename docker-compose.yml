@@ -30,6 +30,7 @@ services:
       WEBHOOK_URL: http://localhost:8018
       N8N_COMMUNITY_PACKAGES_ENABLED: "true"
       N8N_ENCRYPTION_KEY: "0Yar59y+0frrlVMglzYtX52gvx42Rnub"
+      N8N_SECURE_COOKIE: "false"
     ports:
       - "8018:5678"
     depends_on:
