@@ -13,7 +13,10 @@ services:
       - creditoflow
 
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.n8n
+    image: creditoflow-n8n:latest
     container_name: creditoflow-n8n
     restart: unless-stopped
     environment:
@@ -25,6 +28,7 @@ services:
       DB_POSTGRESDB_PASSWORD: n8n123
       N8N_BASIC_AUTH_ACTIVE: "false"
       WEBHOOK_URL: http://localhost:5678
+      N8N_COMMUNITY_PACKAGES_ENABLED: "true"
     ports:
       - "5678:5678"
     depends_on:

@@ -1,0 +1,9 @@
+FROM n8nio/n8n:latest
+
+USER root
+
+RUN apk add --no-cache python3 make g++
+
+USER node
+
+RUN npm install -g n8n-nodes-ocrbro
