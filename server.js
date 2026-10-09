@@ -138,7 +138,7 @@ app.post('/api/upload', upload.fields([
 
     try {
       const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';
-      const respuesta = await fetch(`${n8nUrl}/webhook-test/evaluacion-credito-test`, {
+      const respuesta = await fetch(`${n8nUrl}/webhook/evaluacion-credito-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosN8N)
@@ -182,7 +182,7 @@ app.post('/api/upload-test', upload.single('documento'), async (req, res) => {
 
     try {
       const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';
-      const respuesta = await fetch(`${n8nUrl}/webhook-test/evaluacion-credito-test`, {
+      const respuesta = await fetch(`${n8nUrl}/webhook/evaluacion-credito-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosN8N)
