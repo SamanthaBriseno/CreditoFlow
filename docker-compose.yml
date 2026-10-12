@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     environment:
       DB_TYPE: postgresdb
-      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_HOST: creditoflow-postgres
       DB_POSTGRESDB_PORT: 5432
       DB_POSTGRESDB_DATABASE: n8n
       DB_POSTGRESDB_USER: n8n
@@ -43,7 +43,7 @@ services:
     container_name: creditoflow-app
     restart: unless-stopped
     environment:
-      PG_HOST: postgres
+      PG_HOST: creditoflow-postgres
       PG_PORT: 5432
       PG_DATABASE: n8n
       PG_USER: n8n

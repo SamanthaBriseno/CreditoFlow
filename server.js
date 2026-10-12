@@ -523,9 +523,9 @@ Genera al menos 4 recomendaciones y 3 quick wins. No incluyas texto fuera del JS
 // GET — devuelve caché del día o genera si no existe
 app.get('/api/ia/recomendaciones', async (req, res) => {
   try {
-    // Buscar caché de hoy
+    // Buscar caché de hoy, si no hay tomar el más reciente
     const cache = await pool.query(
-      `SELECT * FROM ia_recomendaciones WHERE fecha_analisis = CURRENT_DATE`
+      `SELECT * FROM ia_recomendaciones ORDER BY fecha_analisis DESC LIMIT 1`
     );
     if (cache.rows.length > 0) {
       const row = cache.rows[0];
@@ -538,7 +538,7 @@ app.get('/api/ia/recomendaciones', async (req, res) => {
       });
     }
 
-    // No hay caché — generar
+    // No hay ningún registro — generar
     const { k, r } = await obtenerDatosIA();
     const analisis = await generarConOllama(k, r);
     const datos = {
