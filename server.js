@@ -34,6 +34,7 @@ app.get('/seguimiento.html', (req, res) => res.sendFile(__dirname + '/seguimient
 app.get('/panel-empleado.html', (req, res) => res.sendFile(__dirname + '/panel-empleado.html'));
 app.get('/tablero.html', (req, res) => res.sendFile(__dirname + '/tablero.html'));
 app.get('/ia-recomendaciones.html', (req, res) => res.sendFile(__dirname + '/ia-recomendaciones.html'));
+app.get('/configuracion.html', (req, res) => res.sendFile(__dirname + '/configuracion.html'));
 
 // ============ MULTER ============
 const storage = multer.diskStorage({
@@ -398,16 +399,16 @@ app.get('/api/dashboard/scores', async (req, res) => {
           WHEN score_credito > 0  THEN 'Bajo (1-49)'
           ELSE 'Sin score'
         END AS rango,
-        COUNT(*)::int AS total
-      FROM solicitudes
-      GROUP BY 1
-      ORDER BY
+        COUNT(*)::int AS total,
         CASE
           WHEN score_credito >= 75 THEN 1
           WHEN score_credito >= 50 THEN 2
           WHEN score_credito > 0  THEN 3
           ELSE 4
-        END
+        END AS orden
+      FROM solicitudes
+      GROUP BY rango, orden
+      ORDER BY orden
     `);
     res.json(rows);
   } catch (e) {
@@ -592,6 +593,20 @@ app.post('/api/ia/recomendaciones/forzar', async (req, res) => {
   }
 });
 
+// ============ CONFIGURACIÓN: Reset demo ============
+app.post('/api/demo/reset', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM status_logs WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
+    await pool.query(`DELETE FROM referencias WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
+    await pool.query(`DELETE FROM documentos WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
+    const { rowCount } = await pool.query(`DELETE FROM solicitudes WHERE es_demo = TRUE`);
+    res.json({ success: true, eliminadas: rowCount });
+  } catch (e) {
+    console.error('Error en /api/demo/reset:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ============ MANEJO DE ERRORES DE MULTER ============
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
@@ -612,4 +627,5 @@ app.listen(PORT, () => {
   console.log(`👤 Panel empleado: http://localhost:${PORT}/panel-empleado.html`);
   console.log(`📊 Tablero: http://localhost:${PORT}/tablero.html`);
   console.log(`🤖 IA: http://localhost:${PORT}/ia-recomendaciones.html`);
+  console.log(`⚙️  Config: http://localhost:${PORT}/configuracion.html`);
 });

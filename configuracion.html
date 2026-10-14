@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración — CréditoFlow</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0e1a;
+      --sidebar-bg: #060912;
+      --card-bg: #0d1424;
+      --border: #1a2540;
+      --border-hover: #2a3a5f;
+      --text: #ffffff;
+      --text-2: #6b7280;
+      --text-3: #4b5563;
+      --accent: #4dd4e8;
+      --green: #10b981;
+      --green-2: #34d399;
+      --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    .sidebar {
+      width: 220px; min-width: 220px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 24px 0;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo .brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .sidebar-logo .brand span { color: var(--accent); }
+    .sidebar-logo .sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      color: var(--text-2); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: all 0.15s; margin-bottom: 2px;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--card-bg); color: var(--text); }
+    .nav-item.active { background: rgba(77,212,232,0.08); color: var(--accent); border-left-color: var(--accent); }
+    .nav-item svg { flex-shrink: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+    .nav-config {
+      background: rgba(77,212,232,0.06);
+      border-left-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+    .nav-config:hover { background: rgba(77,212,232,0.12) !important; }
+
+    .main { margin-left: 220px; flex: 1; padding: 28px 32px; min-width: 0; }
+
+    .top-header { margin-bottom: 32px; }
+    .top-header h1 { font-size: 20px; font-weight: 700; }
+    .top-header .subtitle { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 560px;
+    }
+    .section-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .section-card p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 20px; }
+
+    .queries-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.8;
+    }
+    .queries-box span { color: #f87171; }
+    .queries-box em { color: #4dd4e8; font-style: normal; }
+
+    .btn-reset {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: var(--red-2);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-reset:hover { background: rgba(239,68,68,0.2); border-color: var(--red); }
+    .btn-reset:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .result-msg {
+      display: none;
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .result-msg.ok { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--green-2); }
+    .result-msg.err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red-2); }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; min-width: 60px; }
+      .sidebar-logo .brand, .sidebar-logo .sub, .nav-item span { display: none; }
+      .main { margin-left: 60px; padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Crédito<span>Flow</span></div>
+    <div class="sub">Portal Analytics</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/tablero.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="/" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Nueva Solicitud</span>
+    </a>
+    <a href="/panel-empleado.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Panel Empleado</span>
+    </a>
+    <a href="/ia-recomendaciones.html" class="nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      <span>IA Recomendaciones</span>
+    </a>
+    <a href="/configuracion.html" class="nav-item active nav-config">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Configuración</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer"></div>
+</aside>
+
+<main class="main">
+  <div class="top-header">
+    <h1>Configuración</h1>
+    <p class="subtitle">Herramientas de administración y gestión de datos demo</p>
+  </div>
+
+  <div class="section-card">
+    <h2>Resetear casos de demo</h2>
+    <p>Elimina todas las solicitudes marcadas como demo (<code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:11px">es_demo = TRUE</code>) junto con sus registros relacionados, dejando los datos listos para volver a usarlos en cada presentación.</p>
+
+    <div class="queries-box">
+      <span>DELETE</span> <em>FROM</em> status_logs <em>WHERE</em> solicitud_id <em>IN</em> (solicitudes demo)<br>
+      <span>DELETE</span> <em>FROM</em> referencias &nbsp;&nbsp;<em>WHERE</em> solicitud_id <em>IN</em> (solicitudes demo)<br>
+      <span>DELETE</span> <em>FROM</em> documentos &nbsp;&nbsp;<em>WHERE</em> solicitud_id <em>IN</em> (solicitudes demo)<br>
+      <span>DELETE</span> <em>FROM</em> solicitudes &nbsp;&nbsp;<em>WHERE</em> es_demo = <em>TRUE</em>
+    </div>
+
+    <button class="btn-reset" id="btnReset" onclick="resetDemo()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+      Resetear datos demo
+    </button>
+
+    <div class="result-msg" id="resultMsg"></div>
+  </div>
+</main>
+
+<script>
+  async function resetDemo() {
+    if (!confirm('¿Confirmar reset? Se eliminarán todas las solicitudes marcadas como demo.')) return;
+    const btn = document.getElementById('btnReset');
+    const msg = document.getElementById('resultMsg');
+    btn.disabled = true;
+    btn.querySelector('svg').style.animation = 'spin 0.8s linear infinite';
+    msg.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/demo/reset', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error desconocido');
+      msg.className = 'result-msg ok';
+      msg.textContent = `✓ Reset completado — ${data.eliminadas} solicitud${data.eliminadas !== 1 ? 'es' : ''} demo eliminada${data.eliminadas !== 1 ? 's' : ''}.`;
+    } catch (e) {
+      msg.className = 'result-msg err';
+      msg.textContent = '✗ Error: ' + e.message;
+    } finally {
+      msg.style.display = 'block';
+      btn.disabled = false;
+      btn.querySelector('svg').style.animation = '';
+    }
+  }
+</script>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</body>
+</html>

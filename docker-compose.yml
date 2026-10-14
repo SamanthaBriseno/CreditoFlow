@@ -50,6 +50,7 @@ services:
       PG_PASSWORD: n8n123
       N8N_URL: http://n8n:5678
       PORT: 3000
+      OLLAMA_URL: http://172.16.199.253:11434
     ports:
       - "8020:3000"
     volumes:
