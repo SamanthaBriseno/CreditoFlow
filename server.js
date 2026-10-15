@@ -596,10 +596,10 @@ app.post('/api/ia/recomendaciones/forzar', async (req, res) => {
 // ============ CONFIGURACIÓN: Reset demo ============
 app.post('/api/demo/reset', async (req, res) => {
   try {
-    await pool.query(`DELETE FROM status_logs WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
-    await pool.query(`DELETE FROM referencias WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
-    await pool.query(`DELETE FROM documentos WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE es_demo = TRUE)`);
-    const { rowCount } = await pool.query(`DELETE FROM solicitudes WHERE es_demo = TRUE`);
+    await pool.query(`DELETE FROM status_logs WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE folio LIKE 'SOL-%')`);
+    await pool.query(`DELETE FROM referencias WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE folio LIKE 'SOL-%')`);
+    await pool.query(`DELETE FROM documentos WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE folio LIKE 'SOL-%')`);
+    const { rowCount } = await pool.query(`DELETE FROM solicitudes WHERE folio LIKE 'SOL-%'`);
     res.json({ success: true, eliminadas: rowCount });
   } catch (e) {
     console.error('Error en /api/demo/reset:', e);
