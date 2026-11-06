@@ -169,5 +169,25 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+      // ── LOGS ──
+      function getSesion() {
+        let s = sessionStorage.getItem('cf_sesion');
+        if (!s) { s = crypto.randomUUID(); sessionStorage.setItem('cf_sesion', s); }
+        return s;
+      }
+      function logEvento(accion) {
+        fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sesion_id: getSesion(), accion }) }).catch(() => {});
+      }
+      logEvento('Visita: página solicitud');
+
+      document.querySelectorAll('input[type="file"]').forEach(inp =>
+        inp.addEventListener('change', () => inp.files[0] && logEvento('Archivo seleccionado: ' + inp.id))
+      );
+      document.getElementById('solicitudForm').addEventListener('submit', () =>
+        logEvento('Click: enviar solicitud')
+      );
+    </script>
 </body>
 </html>

@@ -270,6 +270,18 @@
 </div>
 
 <script>
+  // ── LOGS ──
+  function getSesion() {
+    let s = sessionStorage.getItem('cf_sesion');
+    if (!s) { s = crypto.randomUUID(); sessionStorage.setItem('cf_sesion', s); }
+    return s;
+  }
+  function logEvento(accion) {
+    fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sesion_id: getSesion(), accion }) }).catch(() => {});
+  }
+  logEvento('Visita: panel empleado');
+
   const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
   let pendingRechazarId = null;
 
@@ -325,6 +337,7 @@
 
   async function aprobar(id, btn) {
     if (!confirm('¿Confirmar aprobación de esta solicitud?')) return;
+    logEvento('Click: aprobar solicitud id ' + id);
     btn.disabled = true;
     btn.textContent = 'Aprobando...';
     try {
@@ -340,6 +353,7 @@
 
   function abrirModalRechazo(id) {
     pendingRechazarId = id;
+    logEvento('Click: abrir modal rechazo id ' + id);
     document.getElementById('motivoInput').value = '';
     document.getElementById('modalRechazo').classList.add('open');
     setTimeout(() => document.getElementById('motivoInput').focus(), 50);
@@ -352,6 +366,7 @@
 
   document.getElementById('btnConfirmarRechazo').addEventListener('click', async () => {
     const motivo = document.getElementById('motivoInput').value.trim() || 'Rechazado por empleado';
+    logEvento('Click: confirmar rechazo id ' + pendingRechazarId);
     const btn = document.getElementById('btnConfirmarRechazo');
     btn.disabled = true;
     btn.textContent = 'Rechazando...';

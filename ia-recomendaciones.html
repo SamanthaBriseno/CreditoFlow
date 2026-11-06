@@ -344,6 +344,18 @@
 </main>
 
 <script>
+  // ── LOGS ──
+  function getSesion() {
+    let s = sessionStorage.getItem('cf_sesion');
+    if (!s) { s = crypto.randomUUID(); sessionStorage.setItem('cf_sesion', s); }
+    return s;
+  }
+  function logEvento(accion) {
+    fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sesion_id: getSesion(), accion }) }).catch(() => {});
+  }
+  logEvento('Visita: IA recomendaciones');
+
   const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
   let timerInterval = null;
 
@@ -357,7 +369,10 @@
   // Al entrar: cargar desde caché SIN loader (instantáneo si existe)
   cargarDesdeCache();
 
-  document.getElementById('btnAnalizar').addEventListener('click', () => regenerar());
+  document.getElementById('btnAnalizar').addEventListener('click', () => {
+    logEvento('Click: regenerar análisis IA');
+    regenerar();
+  });
 
   async function cargarDesdeCache() {
     try {
@@ -374,6 +389,7 @@
         + 'Análisis del ' + hora + '</div>';
       render(data);
       mostrarEstado('content');
+      logEvento('IA recomendaciones: cargadas desde caché');
     } catch {
       mostrarEstado('empty');
     }
@@ -405,6 +421,7 @@
         + 'Recién generado · ' + hora + ' (' + secs + 's)</div>';
       render(data);
       mostrarEstado('content');
+      logEvento('IA recomendaciones: regeneradas exitosamente (' + secs + 's)');
     } catch (e) {
       mostrarEstado('empty');
       errorContainer.innerHTML = '<div class="error-box"><strong>Error:</strong> ' + e.message

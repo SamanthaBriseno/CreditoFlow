@@ -145,6 +145,18 @@
     </div>
 
     <script>
+        // ── LOGS ──
+        function getSesion() {
+          let s = sessionStorage.getItem('cf_sesion');
+          if (!s) { s = crypto.randomUUID(); sessionStorage.setItem('cf_sesion', s); }
+          return s;
+        }
+        function logEvento(accion) {
+          fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sesion_id: getSesion(), accion }) }).catch(() => {});
+        }
+        logEvento('Visita: seguimiento');
+
         let intervalo = null;
 
         // Si viene con ?folio= en la URL, buscar directo
@@ -161,6 +173,7 @@
             const errEl = document.getElementById('errorBuscar');
             errEl.style.display = 'none';
             iniciarSeguimiento(val);
+            logEvento('Búsqueda folio: ' + val);
         });
 
         function iniciarSeguimiento(folio) {
@@ -198,7 +211,10 @@
                     return;
                 }
                 const data = await response.json();
-                if (response.ok) actualizarUI(data);
+                if (response.ok) {
+                  logEvento('Status consultado: ' + folio + ' → ' + data.status);
+                  actualizarUI(data);
+                }
             } catch (error) {
                 console.error('Error:', error);
             }

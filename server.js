@@ -26,15 +26,33 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// ============ HELPER: LOG ============
+async function log(sesion, accion) {
+  try {
+    await pool.query(
+      `INSERT INTO logs_usuario (sesion_id, accion) VALUES ($1, $2)`,
+      [sesion || null, accion]
+    );
+  } catch { /* no bloquear flujo si falla el log */ }
+}
+
 // ============ RUTAS HTML ============
-app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
-app.get('/index.html', (req, res) => res.sendFile(__dirname + '/index.html'));
-app.get('/test.html', (req, res) => res.sendFile(__dirname + '/test.html'));
-app.get('/seguimiento.html', (req, res) => res.sendFile(__dirname + '/seguimiento.html'));
-app.get('/panel-empleado.html', (req, res) => res.sendFile(__dirname + '/panel-empleado.html'));
-app.get('/tablero.html', (req, res) => res.sendFile(__dirname + '/tablero.html'));
-app.get('/ia-recomendaciones.html', (req, res) => res.sendFile(__dirname + '/ia-recomendaciones.html'));
-app.get('/configuracion.html', (req, res) => res.sendFile(__dirname + '/configuracion.html'));
+app.get('/', (req, res) => { log(null, 'Visita: página solicitud'); res.sendFile(__dirname + '/index.html'); });
+app.get('/index.html', (req, res) => { log(null, 'Visita: página solicitud'); res.sendFile(__dirname + '/index.html'); });
+app.get('/test.html', (req, res) => { log(null, 'Visita: modo prueba'); res.sendFile(__dirname + '/test.html'); });
+app.get('/seguimiento.html', (req, res) => { log(null, 'Visita: seguimiento'); res.sendFile(__dirname + '/seguimiento.html'); });
+app.get('/panel-empleado.html', (req, res) => { log(null, 'Visita: panel empleado'); res.sendFile(__dirname + '/panel-empleado.html'); });
+app.get('/tablero.html', (req, res) => { log(null, 'Visita: tablero ejecutivo'); res.sendFile(__dirname + '/tablero.html'); });
+app.get('/ia-recomendaciones.html', (req, res) => { log(null, 'Visita: IA recomendaciones'); res.sendFile(__dirname + '/ia-recomendaciones.html'); });
+app.get('/configuracion.html', (req, res) => { log(null, 'Visita: configuración'); res.sendFile(__dirname + '/configuracion.html'); });
+
+// ============ RUTA: Registrar log desde frontend ============
+app.post('/api/log', async (req, res) => {
+  const { sesion_id, accion } = req.body;
+  if (!accion) return res.status(400).json({ error: 'accion requerida' });
+  await log(sesion_id, accion);
+  res.json({ ok: true });
+});
 
 // ============ MULTER ============
 const storage = multer.diskStorage({
@@ -115,6 +133,7 @@ app.post('/api/upload', upload.fields([
     }
 
     const folio = `SOL-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    await log(req.body.sesion_id, `Solicitud enviada: folio ${folio}, monto ${monto}, nombre ${nombre}`);
 
     const datosN8N = {
       solicitud_id: Date.now(),
@@ -168,6 +187,7 @@ app.post('/api/upload-test', upload.single('documento'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Falta el documento' });
 
     const folio = `TEST-${Date.now()}`;
+    await log(req.body.sesion_id, `Solicitud prueba enviada: folio ${folio}, monto ${monto}, nombre ${nombre}`);
 
     const datosN8N = {
       solicitud_id: Date.now(),
@@ -227,6 +247,7 @@ app.get('/api/status/:folio', async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: 'Solicitud no encontrada' });
 
     const s = rows[0];
+    await log(null, `Consulta status: folio ${req.params.folio} → ${s.status}`);
     res.json({
       folio: s.folio,
       status: s.status,
@@ -268,6 +289,7 @@ app.post('/api/aprobar/:id', async (req, res) => {
       [req.params.id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Solicitud no encontrada' });
+    await log(null, `Empleado aprobó solicitud id ${req.params.id}: folio ${rows[0].folio}`);
     res.json({ success: true, ...rows[0] });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -284,6 +306,7 @@ app.post('/api/rechazar/:id', async (req, res) => {
       [motivo, req.params.id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Solicitud no encontrada' });
+    await log(null, `Empleado rechazó solicitud id ${req.params.id}: folio ${rows[0].folio}, motivo: ${motivo}`);
     res.json({ success: true, ...rows[0] });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -558,6 +581,7 @@ app.get('/api/ia/recomendaciones', async (req, res) => {
       [JSON.stringify(datos), JSON.stringify(analisis)]
     );
 
+    await log(null, 'IA recomendaciones: generadas (sin caché)');
     res.json({ desde_cache: false, fecha_analisis: new Date().toISOString(), datos, analisis, modelo: 'llama3' });
   } catch (e) {
     console.error('Error en /api/ia/recomendaciones:', e);
@@ -586,6 +610,7 @@ app.post('/api/ia/recomendaciones/forzar', async (req, res) => {
       [JSON.stringify(datos), JSON.stringify(analisis)]
     );
 
+    await log(null, 'IA recomendaciones: regeneradas forzado');
     res.json({ desde_cache: false, fecha_analisis: new Date().toISOString(), datos, analisis, modelo: 'llama3' });
   } catch (e) {
     console.error('Error en /api/ia/recomendaciones/forzar:', e);
@@ -600,6 +625,7 @@ app.post('/api/demo/reset', async (req, res) => {
     await pool.query(`DELETE FROM referencias WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE folio LIKE 'SOL-%')`);
     await pool.query(`DELETE FROM documentos WHERE solicitud_id IN (SELECT id FROM solicitudes WHERE folio LIKE 'SOL-%')`);
     const { rowCount } = await pool.query(`DELETE FROM solicitudes WHERE folio LIKE 'SOL-%'`);
+    await log(null, `Demo reset: ${rowCount} solicitudes eliminadas`);
     res.json({ success: true, eliminadas: rowCount });
   } catch (e) {
     console.error('Error en /api/demo/reset:', e);
