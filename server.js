@@ -5,6 +5,20 @@ const path = require('path');
 const cors = require('cors');
 const { Pool } = require('pg');
 
+async function runMigrations(pool) {
+  const dir = path.join(__dirname, 'migrations');
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
+  for (const file of files) {
+    try {
+      await pool.query(fs.readFileSync(path.join(dir, file), 'utf8'));
+      console.log(`✅ Migración: ${file}`);
+    } catch (e) {
+      console.error(`❌ Migración ${file}:`, e.message);
+    }
+  }
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -645,7 +659,7 @@ app.use((error, req, res, next) => {
 });
 
 // ============ INICIAR SERVIDOR ============
-app.listen(PORT, () => {
+runMigrations(pool).then(() => app.listen(PORT, () => {
   console.log(`🚀 Servidor: http://localhost:${PORT}`);
   console.log(`📋 Producción: http://localhost:${PORT}/`);
   console.log(`🧪 Pruebas: http://localhost:${PORT}/test.html`);
@@ -654,4 +668,4 @@ app.listen(PORT, () => {
   console.log(`📊 Tablero: http://localhost:${PORT}/tablero.html`);
   console.log(`🤖 IA: http://localhost:${PORT}/ia-recomendaciones.html`);
   console.log(`⚙️  Config: http://localhost:${PORT}/configuracion.html`);
-});
+}));

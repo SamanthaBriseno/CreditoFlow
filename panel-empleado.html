@@ -291,6 +291,7 @@
   async function cargarSolicitudes() {
     try {
       const res = await fetch('/api/revision-manual');
+      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const solicitudes = await res.json();
       const container = document.getElementById('listaSolicitudes');
       const n = solicitudes.length;
