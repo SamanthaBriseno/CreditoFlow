@@ -148,7 +148,10 @@
         // ── LOGS ──
         function getSesion() {
           let s = sessionStorage.getItem('cf_sesion');
-          if (!s) { s = crypto.randomUUID(); sessionStorage.setItem('cf_sesion', s); }
+          if (!s) {
+            s = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+            sessionStorage.setItem('cf_sesion', s);
+          }
           return s;
         }
         function logEvento(accion) {
